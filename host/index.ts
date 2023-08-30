@@ -8,10 +8,10 @@ const context = new Context({
 console.log("begin");
 
 const binary = await Deno.readFile(
-  "../plugin/dist-newstyle/build/wasm32-wasi/ghc-9.9.20230623/hello-1.0.0.2/build/hello/hello.wasm"
+  "plugin/dist-newstyle/build/wasm32-wasi/ghc-9.9.20230623/hello-1.0.0.2/build/hello/hello.wasm"
 );
-// const module = await WebAssembly.compile(binary);
-const instance = await WebAssembly.instantiate(binary, {
+
+const module = await WebAssembly.instantiate(binary, {
   wasi_snapshot_preview1: context.exports,
   // env: {
   //   extism_alloc(n: bigint): bigint {
@@ -69,7 +69,7 @@ const instance = await WebAssembly.instantiate(binary, {
 });
 
 try {
-  const { _start, hs_init } = instance.instance.exports;
+  const { _start, hs_init } = module.instance.exports;
   if (typeof _start !== "function") {
     throw new TypeError("_start must be a function");
   } else if (typeof hs_init !== "function") {
@@ -80,7 +80,7 @@ try {
   // Mo in D:\dylibso\x\deno-wasi\host λ deno run -A .\index.ts
   // begin
   // Hello, World!
-  const x = context.start(instance.instance);
+  context.start(module.instance);
 
   //   // 2. calling _start directly (crashes):
   //   // Mo in D:\dylibso\x\deno-wasi\host λ deno run -A .\index.ts
@@ -88,10 +88,9 @@ try {
   //   hs_init();
   //   console.log("initialized")
   //  _start();
-
-  console.log("x: ", x);
 } catch (err) {
   console.error("err: ", err);
 }
 
+// doesn't reach here :(
 console.log("end");
